@@ -3,14 +3,14 @@
     <!-- planta "desenhada" com divs CSS -->
     <div class="floorplan" ref="container">
       <!-- rooms as CSS boxes -->
-      <div class="room entrada">Entrada</div>
+      <div class="room guarita">Guarita</div>
       <div class="room recepcao">Recepção</div>
       <div class="room salaA">Sala A</div>
       <div class="room salaB">Sala B</div>
       <div class="room salaC">Sala C</div>
       <div class="room salaD">Sala D</div>
       <div class="room salaE">Sala E</div>
-      <div class="room escada">Escada</div>
+      <div class="room coordenacao">Coordenação</div>
 
       <!-- SVG overlay (absolute) -->
       <svg class="overlay" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
@@ -34,8 +34,8 @@
 
         <!-- nodes -->
         <g v-for="(n, id) in nodes" :key="id">
-          <circle :cx="px(n.x)" :cy="py(n.y)" r="16" :fill="id==='entrada'? 'green':'#1f6feb'"/>
-          <text :x="px(n.x)+22" :y="py(n.y)+6" font-size="32" fill="#111" font-family="sans-serif">{{ id }}</text>
+          <circle v-if="!id.startsWith('corredor')" :cx="px(n.x)" :cy="py(n.y)" r="16" :fill="id==='entrada'? 'green':'#1f6feb'"/>
+<!--          <text v-if="id==='entrada'" :x="px(n.x)+22" :y="py(n.y)+6" font-size="32" fill="#111" font-family="sans-serif">{{ id }}</text>-->
         </g>
       </svg>
     </div>
@@ -124,14 +124,14 @@ onMounted(() => {
 }
 
 /* positions tuned to match nodes (use percent) */
-.entrada { left: 8%; top: 68%; width: 22%; height: 18%; }
-.recepcao { left: 30%; top: 66%; width: 26%; height: 20%; }
-.salaA { left: 6%; top: 4%; width: 36%; height: 32%; }
-.salaB { left: 38%; top: 4%; width: 30%; height: 32%; }
-.salaC { left: 70%; top: 4%; width: 26%; height: 32%; }
-.salaD { left: 6%; top: 40%; width: 36%; height: 20%; }
-.salaE { left: 36%; top: 40%; width: 36%; height: 20%; }
-.escada { left: 70%; top: 62%; width: 26%; height: 16%; }
+.guarita      { left: 6%;  top: 67%; width: 8%;  height: 20%; }
+.recepcao     { left: 15%; top: 67%; width: 26%; height: 20%; }
+.coordenacao  { left: 42%; top: 67%; width: 36%; height: 20%; }
+.salaA        { left: 6%;  top: 4%;  width: 36%; height: 32%; }
+.salaB        { left: 38%; top: 4%;  width: 30%; height: 32%; }
+.salaC        { left: 70%; top: 4%;  width: 26%; height: 32%; }
+.salaD        { left: 6%;  top: 42%; width: 36%; height: 20%; }
+.salaE        { left: 36%; top: 42%; width: 36%; height: 20%; }
 
 /* overlay SVG covers whole container */
 .overlay{
