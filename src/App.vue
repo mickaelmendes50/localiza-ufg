@@ -1,4 +1,5 @@
 <template>
+  <Header></Header>
   <div class="app-shell">
     <MapView :destination="destination"/>
     <ControlPanel @navigate="(d) => (destination = d)"/>
@@ -9,6 +10,7 @@
 import { ref } from "vue";
 import MapView from "./components/MapView.vue";
 import ControlPanel from "./components/ControlPanel.vue";
+import Header from "./components/Header.vue";
 const destination = ref<string | null>(null);
 </script>
 
