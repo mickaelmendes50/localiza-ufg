@@ -1,40 +1,67 @@
 <template>
-  <div class="relative w-full max-w-[900px] h-auto">
-    <img
-        ref="image"
-        src="/floorplan.png"
-        alt="Planta"
-        class="w-full h-auto object-contain"
-        @load="setupCanvas"
-    />
-    <canvas
-        ref="canvas"
-        class="absolute top-0 left-0 w-full h-full pointer-events-none"
-    ></canvas>
+  <div class="map-wrap">
+    <!-- planta "desenhada" com divs CSS -->
+    <div class="floorplan" ref="container">
+      <!-- rooms as CSS boxes -->
+      <div class="room entrada">Entrada</div>
+      <div class="room recepcao">Recepção</div>
+      <div class="room salaA">Sala A</div>
+      <div class="room salaB">Sala B</div>
+      <div class="room salaC">Sala C</div>
+      <div class="room salaD">Sala D</div>
+      <div class="room salaE">Sala E</div>
+      <div class="room escada">Escada</div>
+
+      <!-- SVG overlay (absolute) -->
+      <svg class="overlay" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
+        <!-- debug: draw all edges faint -->
+        <g stroke="#ddd" stroke-width="10" fill="none">
+          <line v-for="(e, i) in edges" :key="'e'+i"
+                :x1="px(nodes[e[0]].x)" :y1="py(nodes[e[0]].y)"
+                :x2="px(nodes[e[1]].x)" :y2="py(nodes[e[1]].y)" />
+        </g>
+
+        <!-- route polyline -->
+        <polyline
+            v-if="routePoints.length"
+            :points="routePoints"
+            stroke="red"
+            stroke-width="18"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+
+        <!-- nodes -->
+        <g v-for="(n, id) in nodes" :key="id">
+          <circle :cx="px(n.x)" :cy="py(n.y)" r="16" :fill="id==='entrada'? 'green':'#1f6feb'"/>
+          <text :x="px(n.x)+22" :y="py(n.y)+6" font-size="32" fill="#111" font-family="sans-serif">{{ id }}</text>
+        </g>
+      </svg>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch, nextTick } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { nodes, edges } from "../data/graph";
 
 const props = defineProps<{ destination: string | null }>();
-const canvas = ref<HTMLCanvasElement | null>(null);
-const image = ref<HTMLImageElement | null>(null);
 
-let scaleX = 1;
-let scaleY = 1;
+const container = ref<HTMLElement | null>(null);
+const logicalSize = 1000; // matches viewBox 1000 x 1000
 
-// Define rota (entrada -> destino)
+// utils to convert relative (0..1) to svg coords (0..1000)
+const px = (x: number) => Math.round(x * logicalSize);
+const py = (y: number) => Math.round(y * logicalSize);
+
 function findPath(destination: string): string[] {
   const queue: string[][] = [["entrada"]];
-  const visited = new Set<string>();
-
+  const visited = new Set<string>(["entrada"]);
   while (queue.length) {
     const path = queue.shift()!;
     const last = path[path.length - 1];
     if (last === destination) return path;
-
     for (const [a, b] of edges) {
       if (a === last && !visited.has(b)) {
         visited.add(b);
@@ -48,65 +75,70 @@ function findPath(destination: string): string[] {
   return [];
 }
 
-function drawRoute(route: string[]) {
-  const ctx = canvas.value?.getContext("2d");
-  if (!ctx || !image.value) return;
+const currentRoute = ref<string[]>([]);
 
-  ctx.clearRect(0, 0, canvas.value!.width, canvas.value!.height);
+watch(() => props.destination, (d) => {
+  if (!d) { currentRoute.value = []; return; }
+  currentRoute.value = findPath(d);
+});
 
-  // desenhar rota
-  if (route.length > 1) {
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-
-    const start = nodes[route[0]];
-    ctx.moveTo(start.x * scaleX, start.y * scaleY);
-    for (let i = 1; i < route.length; i++) {
-      const point = nodes[route[i]];
-      ctx.lineTo(point.x * scaleX, point.y * scaleY);
-    }
-    ctx.stroke();
-  }
-
-  // desenhar nós (debug visual)
-  for (const [id, point] of Object.entries(nodes)) {
-    ctx.beginPath();
-    ctx.arc(point.x * scaleX, point.y * scaleY, 6, 0, 2 * Math.PI);
-    ctx.fillStyle = id === "entrada" ? "green" : "blue";
-    ctx.fill();
-    ctx.fillStyle = "black";
-    ctx.font = "12px sans-serif";
-    ctx.fillText(id, point.x * scaleX + 8, point.y * scaleY - 4);
-  }
-}
-
-function setupCanvas() {
-  nextTick(() => {
-    if (!canvas.value || !image.value) return;
-    const rect = image.value.getBoundingClientRect();
-    canvas.value.width = rect.width;
-    canvas.value.height = rect.height;
-
-    // Calcula escala com base nas dimensões originais da planta (1200x900)
-    scaleX = rect.width / 1200;
-    scaleY = rect.height / 900;
-
-    // Desenha pontos base (sem rota)
-    drawRoute([]);
-  });
-}
-
-watch(
-    () => props.destination,
-    (dest) => {
-      if (!dest) return;
-      const route = findPath(dest);
-      drawRoute(route);
-    }
-);
+// routePoints as "x,y x,y"
+const routePoints = computed(() => {
+  if (!currentRoute.value || currentRoute.value.length < 2) return "";
+  return currentRoute.value.map(id => `${px(nodes[id].x)},${py(nodes[id].y)}`).join(" ");
+});
 
 onMounted(() => {
-  setupCanvas();
+  // nothing special needed: SVG scales automatically
 });
 </script>
+
+<style scoped>
+.map-wrap {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width: 100%;
+}
+.floorplan{
+  position: relative;
+  width: 900px;
+  aspect-ratio: 4 / 3;
+  background: #f7f7f7;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+/* rooms (absolute with percentages relative to container) */
+.room{
+  position: absolute;
+  background: #e6eefc;
+  border: 2px solid #c7d9fb;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+  color:#123;
+  border-radius:8px;
+}
+
+/* positions tuned to match nodes (use percent) */
+.entrada { left: 8%; top: 68%; width: 22%; height: 18%; }
+.recepcao { left: 30%; top: 66%; width: 26%; height: 20%; }
+.salaA { left: 6%; top: 4%; width: 36%; height: 32%; }
+.salaB { left: 38%; top: 4%; width: 30%; height: 32%; }
+.salaC { left: 70%; top: 4%; width: 26%; height: 32%; }
+.salaD { left: 6%; top: 40%; width: 36%; height: 20%; }
+.salaE { left: 36%; top: 40%; width: 36%; height: 20%; }
+.escada { left: 70%; top: 62%; width: 26%; height: 16%; }
+
+/* overlay SVG covers whole container */
+.overlay{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* click-through */
+}
+</style>

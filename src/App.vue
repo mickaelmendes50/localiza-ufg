@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 space-y-6">
-    <MapView :destination="destination" />
-    <ControlPanel @navigate="(d) => (destination = d)" />
+  <div class="app-shell">
+    <MapView :destination="destination"/>
+    <ControlPanel @navigate="(d) => (destination = d)"/>
   </div>
 </template>
 
@@ -9,12 +9,17 @@
 import { ref } from "vue";
 import MapView from "./components/MapView.vue";
 import ControlPanel from "./components/ControlPanel.vue";
-
 const destination = ref<string | null>(null);
 </script>
 
 <style>
-body {
-  font-family: system-ui, sans-serif;
+.app-shell{
+  min-height: 100vh;
+  display:flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  background: #f0f2f5;
+  padding: 32px;
 }
 </style>
