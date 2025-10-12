@@ -26,4 +26,5 @@ export const edges: [string, string][] = [
     ["corredor1", "escada"],
 ];
 
+export const floors = ["1st", "2nd", "3rd", "4th", "5th"];
 export const destinations = ["salaA", "salaB", "salaC", "salaD", "salaE", "escada"];
