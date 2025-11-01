@@ -46,9 +46,8 @@ body {
   min-height: 100vh;
   display: flex;
   gap: 32px;
-  align-items: center;
+  align-items: self-start;
   justify-content: center;
-  background: #ffffff;
   padding: 40px 20px;
 }
 
