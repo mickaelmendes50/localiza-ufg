@@ -19,10 +19,10 @@
         <!-- Corredores (cinza claro) -->
         <g stroke="#ddd" stroke-width="8" fill="none" opacity="0.5">
           <line v-for="(e, i) in currentEdges" :key="'e'+i"
-                :x1="px(currentNodes[e[0]].x)"
-                :y1="py(currentNodes[e[0]].y)"
-                :x2="px(currentNodes[e[1]].x)"
-                :y2="py(currentNodes[e[1]].y)" />
+                :x1="px(currentNodes[e[0]]!.x)"
+                :y1="py(currentNodes[e[0]]!.y)"
+                :x2="px(currentNodes[e[1]]!.x)"
+                :y2="py(currentNodes[e[1]]!.y)" />
         </g>
 
         <!-- Rota calculada -->
@@ -181,7 +181,7 @@ watch([() => props.destination, () => props.floorId], ([dest]) => {
 const routePoints = computed(() => {
   if (currentRoute.value.length < 2) return "";
   return currentRoute.value
-      .map(id => `${px(currentNodes.value[id].x)},${py(currentNodes.value[id].y)}`)
+      .map(id => `${px(currentNodes.value[id]!.x)},${py(currentNodes.value[id]!.y)}`)
       .join(" ");
 });
 
@@ -191,10 +191,10 @@ const routeInfo = computed(() => {
 
   let distance = 0;
   for (let i = 0; i < currentRoute.value.length - 1; i++) {
-    const n1 = currentNodes.value[currentRoute.value[i]];
-    const n2 = currentNodes.value[currentRoute.value[i + 1]];
-    const dx = (n2.x - n1.x) * 50; // Escala aproximada (50m por unidade)
-    const dy = (n2.y - n1.y) * 50;
+    const n1 = currentNodes.value[currentRoute.value[i]!];
+    const n2 = currentNodes.value[currentRoute.value[i + 1]!];
+    const dx = (n2!.x - n1!.x) * 50; // Escala aproximada (50m por unidade)
+    const dy = (n2!.y - n1!.y) * 50;
     distance += Math.sqrt(dx * dx + dy * dy);
   }
 
